@@ -10,30 +10,45 @@
 struct sockaddr_in address;
 int sock = 0, valread;
 
-void authApp(int sock, char *userArgs, char *passArgs)
+void authApp(int sock, char *userArgs, char *passArgs, char *isRoot)
 {
-    char id[255], password[255];
-    strcpy(id, userArgs);
-    strcpy(password, passArgs);
+    char authRoot[255];
+    strcpy(authRoot, isRoot);
 
     sleep(1);
-    send(sock, id, strlen(id), 0);
-    sleep(1);
-    send(sock, password, strlen(password), 0);
 
-    printf("Waiting for server response ...\n");
-    char authMsg[1024] = {0};
-    valread = read(sock, authMsg, 1024);
+    send(sock, authRoot, strlen(authRoot), 0);
 
-    if (strcmp(authMsg, "loginSuccess") == 0)
+    if (strcmp(isRoot, "true") == 0)
     {
-        printf("Logged in.\n");
+        printf("Login as root.\n");
         exit(0);
     }
     else
     {
-        printf("Login Failed, check your id or password again!\n");
-        exit(0);
+        char id[255], password[255];
+        strcpy(id, userArgs);
+        strcpy(password, passArgs);
+
+        sleep(1);
+        send(sock, id, strlen(id), 0);
+        sleep(1);
+        send(sock, password, strlen(password), 0);
+
+        printf("Waiting for server response ...\n");
+        char authMsg[1024] = {0};
+        valread = read(sock, authMsg, 1024);
+
+        if (strcmp(authMsg, "loginSuccess") == 0)
+        {
+            printf("Logged in.\n");
+            exit(0);
+        }
+        else
+        {
+            printf("Login Failed, check your id or password again!\n");
+            exit(0);
+        }
     }
 }
 
@@ -72,16 +87,23 @@ int main(int argc, char *argv[])
 
         if (strcmp(usageStatus, "available") == 0)
         {
-            if (argc == 5)
+            if (getuid())
             {
-                char id[255], password[255];
-                strcpy(id, argv[2]);
-                strcpy(password, argv[4]);
-                authApp(sock, id, password);
+                if (argc == 5)
+                {
+                    char id[255], password[255];
+                    strcpy(id, argv[2]);
+                    strcpy(password, argv[4]);
+                    authApp(sock, id, password, "false");
+                }
+                else
+                {
+                    exit(0);
+                }
             }
             else
             {
-                exit(0);
+                authApp(sock, "", "", "true");
             }
         }
         else

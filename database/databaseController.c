@@ -35,6 +35,16 @@ void *authApp(void *arg)
         stopApp(new_socket);
     }
 
+    char authRoot[1024] = {0};
+    sleep(1);
+    valread = read(new_socket, authRoot, 1024);
+
+    if (strcmp(authRoot, "true") == 0)
+    {
+        printf("Login as root...\n");
+        stopApp(new_socket);
+    }
+
     char id[1024] = {0}, password[1024] = {0};
     int findAccountStatus = 0;
 
