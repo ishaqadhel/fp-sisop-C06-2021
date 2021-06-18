@@ -37,7 +37,10 @@ void *authApp(void *arg)
 
     char id[1024] = {0}, password[1024] = {0};
     int findAccountStatus = 0;
+
+    sleep(1);
     valread = read(new_socket, id, 1024);
+    sleep(1);
     valread = read(new_socket, password, 1024);
     char authMsg[1024];
 

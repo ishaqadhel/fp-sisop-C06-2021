@@ -18,6 +18,7 @@ void authApp(int sock, char *userArgs, char *passArgs)
 
     sleep(1);
     send(sock, id, strlen(id), 0);
+    sleep(1);
     send(sock, password, strlen(password), 0);
 
     printf("Waiting for server response ...\n");
