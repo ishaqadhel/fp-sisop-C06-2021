@@ -24,6 +24,51 @@ void stopApp(int sock)
     printf("User switch.\n");
 }
 
+void mainMenuApp(int sock, char *isRoot)
+{
+    char command[1024] = {0};
+    char username[1024] = {0}, password[1024] = {0};
+    char authRoot[1024] = {0};
+    strcpy(authRoot, isRoot);
+    printf("User wrote command create user\n");
+
+    sleep(1);
+    valread = read(sock, command, 1024);
+    sleep(1);
+    valread = read(sock, username, 1024);
+    sleep(1);
+    valread = read(sock, password, 1024);
+
+    if (strcmp(command, "CREATEUSER") == 0)
+    {
+        char authMsg[1024];
+        if (strcmp(isRoot, "true") == 0)
+        {
+            mkdir("databases/sisopsql", 0777);
+
+            sleep(1);
+            FILE *file;
+            file = fopen("databases/sisopsql/akun.txt", "a");
+            fprintf(file, "%s:%s\n", username, password);
+
+            sprintf(authMsg, "createUserSuccess");
+            sleep(1);
+            send(sock, authMsg, strlen(authMsg), 0);
+            sleep(1);
+            fclose(file);
+            printf("CreateUser success.\n");
+        }
+        else
+        {
+            sleep(1);
+            send(sock, authMsg, strlen(authMsg), 0);
+            printf("[sqlSisopError:auth] Non-Root user can't create new user.\n");
+            mainMenuApp(sock, authRoot);
+        }
+    }
+    mainMenuApp(sock, authRoot);
+}
+
 void *authApp(void *arg)
 {
     new_socket = *(int *)arg;
@@ -42,7 +87,7 @@ void *authApp(void *arg)
     if (strcmp(authRoot, "true") == 0)
     {
         printf("Login as root...\n");
-        stopApp(new_socket);
+        mainMenuApp(new_socket, authRoot);
     }
 
     char id[1024] = {0}, password[1024] = {0};
@@ -55,7 +100,7 @@ void *authApp(void *arg)
     char authMsg[1024];
 
     FILE *file;
-    file = fopen("akun.txt", "r");
+    file = fopen("databases/sisopsql/akun.txt", "r");
 
     while (fgets(buffer, 1024, file) != NULL)
     {
@@ -119,6 +164,8 @@ int main(int argc, char const *argv[])
         perror("listen");
         exit(EXIT_FAILURE);
     }
+
+    mkdir("databases", 0777);
 
     pthread_t threads[1024];
 

@@ -10,6 +10,51 @@
 struct sockaddr_in address;
 int sock = 0, valread;
 
+void mainMenuApp(int sock)
+{
+    char command[255];
+    char splitCommand[7][255];
+    printf("\nsisopSQL> ");
+    scanf("%[^\n]s", command);
+    // printf("%s\n", command);
+    command[strlen(command) - 1] = '\0';
+    char *temp = strtok(command, " ");
+    strcpy(splitCommand[0], temp);
+    int i = 1;
+    while (temp != NULL)
+    {
+        strcpy(splitCommand[i], temp);
+        i++;
+        temp = strtok(NULL, " ");
+    }
+
+    char *tempAppendCommand = strcat(splitCommand[1], splitCommand[2]);
+    char appendCommand[510];
+    strcpy(appendCommand, tempAppendCommand);
+
+    sleep(1);
+    send(sock, appendCommand, strlen(appendCommand), 0);
+    sleep(1);
+    send(sock, splitCommand[3], strlen(splitCommand[3]), 0);
+    sleep(1);
+    send(sock, splitCommand[6], strlen(splitCommand[6]), 0);
+
+    char authMsg[1024] = {0};
+    sleep(1);
+    valread = read(sock, authMsg, 1024);
+
+    if (strcmp(authMsg, "createUserSuccess") == 0)
+    {
+        printf("New User Created Successfully.\n");
+        printf("* 1 row(s) affected\n");
+    }
+    else
+    {
+        printf("[sqlSisopError:auth] Non-Root user can't create new user.\n");
+    }
+    mainMenuApp(sock);
+}
+
 void authApp(int sock, char *userArgs, char *passArgs, char *isRoot)
 {
     char authRoot[255];
@@ -22,6 +67,7 @@ void authApp(int sock, char *userArgs, char *passArgs, char *isRoot)
     if (strcmp(isRoot, "true") == 0)
     {
         printf("Login as root.\n");
+        mainMenuApp(sock);
         exit(0);
     }
     else
@@ -41,7 +87,7 @@ void authApp(int sock, char *userArgs, char *passArgs, char *isRoot)
 
         if (strcmp(authMsg, "loginSuccess") == 0)
         {
-            printf("Logged in.\n");
+            mainMenuApp(sock);
             exit(0);
         }
         else
