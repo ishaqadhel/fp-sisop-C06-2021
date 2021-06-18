@@ -123,6 +123,7 @@ void *authApp(void *arg)
         sprintf(authMsg, "loginSuccess");
         send(new_socket, authMsg, strlen(authMsg), 0);
         printf("user login success\n");
+        mainMenuApp(new_socket, authRoot);
     }
     else
     {
